@@ -1,0 +1,227 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+  <head> 
+    <!-- Required meta tags always come first --> 
+    <meta charset="utf-8"> 
+    
+    <title>serverless-pwd-gen</title> 
+
+    <!-- Bootstrap CSS first, then Mytheme CSS --> 
+    <!-- Bootswatch theme at https://www.bootstrapcdn.com/bootswatch/ -->
+    <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.3.1/slate/bootstrap.min.css" rel="stylesheet" integrity="sha384-FBPbZPVh+7ks5JJ70RJmIaqyGnvMbeJ5JQfEbW0Ac6ErfvEg9yG56JQJuMNptWsH" crossorigin="anonymous">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/mytheme.css">
+  </head> 
+  <body> 
+  <!-- Header -->
+    <nav class="navbar navbar-expand-md navbar-dark bg-faded">
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"><h2>serverless-pwd-gen</h2></a>
+    
+      <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
+        <div class="navbar-nav float-left text-left pr-3">
+          <a class="nav-item nav-link active" href="index.html">Home <span class="sr-only">(current)</span></a>
+          <a class="nav-item nav-link" href="about.html">About</a>
+          <a class="nav-item nav-link" href="https://ko-fi.com/dennislwm" target="_blank">Buy a Coffee</a>
+          <a class="nav-item nav-link" href="https://github.com/dennislwm" target="_blank">GitHub</a>
+          <a class="nav-item nav-link" href="https://dev.to/dennislwm" target="_blank">DEV</a>      
+        </div>
+      </div>
+    </nav>
+  <!-- End of Header -->
+    <div class="container"> 
+      <!-- page body //--> 
+      <!-- One card per Step snippet -->
+      <div class="row m-t-2"> 
+        <div class="col-md-10"> 
+          <div class="card"> 
+            <div class="card-block"> 
+              <h2>Step 1 - Load Custom Table Mapping</h2>
+              <!-- btnLoadTable to Load JSON Table --> 
+              <button type="button" id="btnLoadTable">Load JSON Table</button>
+              <input id="finLoadTable" type="file" onchange="handleFiles(this.files)" style="display: none;" />
+          
+              <!-- divTable to Display JSON Table --> 
+              <div id="divTable"></div>
+            </div> 
+          </div> 
+        </div> 
+      </div> 
+      <!-- End of One card per Step snippet -->
+      <!-- One card per Step snippet -->
+      <div class="row m-t-2"> 
+        <div class="col-md-10"> 
+          <div class="card "> 
+            <div class="card-block"> 
+              <h2>Step 2 - Enter User Parameter</h2>
+              <div>Min Length:
+                <input type="range" id="txtLength" value="6" min="1" max="10" oninput="outLength.value = txtLength.value">
+                <output id="outLength">6</output><br>
+              </div>
+              <div>Suffix Digit: 
+                <input type="range" id="txtSuffix" value="2" min="0" max="4" oninput="outSuffix.value = txtSuffix.value">
+                <output id="outSuffix">2</output><br>
+              </div>
+              <div>Replace Probability: 
+                <input type="range" id="txtProbability" value="50" min="0" max="100" oninput="outProbability.value = txtProbability.value">
+                <output id="outProbability">50</output><br>
+              </div>
+              <div>Max Output: 
+                <input type="range" id="txtCount" value="5" min="1" max="8" oninput="outCount.value = txtCount.value">
+                <output id="outCount">5</output><br>
+              </div>
+              <button type="submit" id="btnSubmit">Generate Password</button>
+            </div> 
+          </div> 
+        </div> 
+      </div> 
+      <!-- End of One card per Step snippet -->
+      <!-- One card per Step snippet -->
+      <div class="row m-t-2"> 
+        <div class="col-md-10"> 
+          <div class="card "> 
+            <div class="card-block"> 
+              <!-- divResult to Display Random Generated Password --> 
+              <h2>Step 3 - Result</h2>
+              <div id="divResult"></div>
+            </div> 
+          </div> 
+        </div> 
+      </div> 
+      <!-- End of One card per Step snippet -->
+    </div>     
+    <!-- footer //--> 
+    <div class="container footer"> 
+      <div class="row"> 
+          <div class="col-lg-12"> 
+            &copy; Copyright 2019 Dennis Lee
+          </div> 
+      </div> 
+    </div>  
+  
+    <!-- jQuery first, then Bootstrap JS. --> 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <!-- Click event of btnLoadTable --> 
+    <script>
+    //--- Assert global variables
+      var objUserTable={};  // store User Custom Table Mapping, e.g. {a:"@",t:"+"}
+      $(document).ready(function() {
+      //--- Assert btnLoadTable click event triggers the open file dialog
+        $('#btnLoadTable').click(function() {
+          $('#finLoadTable').trigger('click');
+        })
+      })
+    //--- Assert function to load local JSON file into the global variable objUserTable as an array of { key: "value" } pair
+    //    Assert displays objUserTable in HTML
+      function handleFiles(file) {
+      //  console.log(file[0].name);
+      //--- Assert load local JSON file using ajax GET
+        $.ajax({
+          url: file[0].name,
+          success: function(data) {
+          //  console.log(data);
+          //--- Assert display table in divTable
+            var strHtml="<h4>Custom Table Mapping (Case-Sensitive)</h4>";
+            strHtml += "<table>";
+            $.each(data, function(i, objRow) {
+              strHtml += "<tr>";
+              for(var x=0; x<objRow.length; x++) {
+                if( objRow[x].length >= i.length ) {
+                  strHtml += "<th>" + i + " =</th>";
+                  strHtml += "<th>" + objRow[x] + "</th>";
+                  objUserTable[i]=objRow[x];
+                }
+              }
+              strHtml += "</tr>";
+            })
+          //  console.log(objUserTable);
+            strHtml += "</table>";
+            $('#divTable').html(strHtml);
+          },
+          error: function(err) {
+            alert(err.responseText);
+          }
+        })
+      }
+      $(document).ready(function() {
+      //--- Assert function to generate random passwords when User clicks on Button
+        $('#btnSubmit').click(function() {
+        //--- Assert local variables
+        var strUrl = 'https://randomuser.me/api/';
+        //--- excluded ca, de, dk, ir, nl, no
+          strUrl += "?inc=name,nat&nat=au,ch,es,fi,fr,gb,ie,nz,us";
+        //--- Assert ensure more generated names as some names will be discarded
+          intMultiplier = 3;
+          strUrl += "&results=" + $('#txtCount').val() * intMultiplier;
+        //--- Assert call ajax GET API to return an array of random names
+          $.ajax({
+            type: "GET",
+            url: strUrl,
+            dataType: 'json',
+            success: function(data) {
+            //  console.log(data);
+              var obj;
+              var strResult;      // return string from function strAssertName()
+              var arrResult = []; // stores valid passwords
+              for(var x=0; x<data.results.length; x++) {
+                obj = data.results[x];
+                strResult=strAssertName(obj.name.first);
+                if( strResult != '' ) arrResult.push(strResult);
+                strResult=strAssertName(obj.name.last);
+                if( strResult != '' ) arrResult.push(strResult);
+              }
+              var intUserCount = $('#txtCount').val();
+              var strHtml="<h4>Random Generated Password</h4>";
+              strHtml += "<div>";
+            //--- Assert display results up to User count or length of arrResult, whichever is less
+            //    If arrResult is less than User count, we should increase intMultiplier
+              intCount = Math.min(intUserCount,arrResult.length)
+              for(x=0; x<intCount; x++) {
+                strHtml += "<input id='password' value="+arrResult[x]+" /><br>";
+              }
+              strHtml += "</div>";
+            //--- Assert display result in divResult
+              $('#divResult').html(strHtml);
+            },
+            error: function(err) {
+              alert(err.responseText);
+            }
+          })
+        })
+      })
+    //--- Assert function that returns transformed name if a strName meets basic requirement, otherwise return ''
+      function strAssertName(strName) {
+        var strReturn='';
+        intUserLength = $('#txtLength').val();
+        intUserSuffix = $('#txtSuffix').val();
+        intUserProbty = $('#txtProbability').val();
+      //--- Assert name has minimum User length
+        if( strName.length < intUserLength) return strReturn;
+        strReturn = strName;
+      //--- Replace each character in name if exists in objUserTable with a chance of non-replacement
+        $.each( objUserTable, function(idx,objRow) {
+        //--- Assert chance of replacement is from 0% to 100%
+          if( intMathRandom(0,100)<=intUserProbty ) {
+            strReturn = strReturn.replace(idx, objRow);
+          }
+        })
+      //--- Assert add User suffix digit(s)
+        for( var i=0; i<intUserSuffix; i++ ) {
+          strReturn += intMathRandom(0,9);
+        }
+        return strReturn;
+      }
+    //--- Assert function that returns an integer between min and max (inclusive)
+    //    Example, use to generate a random number between 0 to 100 for probability
+    //    Example, use to generate a random number between 0 to 9 for suffix
+      function intMathRandom(intMin, intMax) {
+        intMin = Math.ceil(intMin); 
+        intMax = Math.floor(intMax); 
+        return Math.floor( Math.random()*(intMax-intMin+1) ) + intMin; 
+      }        
+    </script>
+  </body> 
+</html> 
